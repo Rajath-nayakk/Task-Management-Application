@@ -93,6 +93,10 @@ io.use((socket, next) => {
   }
 });
 
+import { setIO, emitTaskEvent } from './realtime/emitter.js';
+
+setIO(io);
+
 io.on('connection', (socket) => {
   const userId = socket.data.user?.userId || socket.data.user?.id;
   if (userId) {
@@ -105,13 +109,7 @@ io.on('connection', (socket) => {
   });
 });
 
-export const emitTaskEvent = (
-  userId: string,
-  event: 'task:created' | 'task:updated' | 'task:deleted' | 'task:cleared',
-  payload: any
-): void => {
-  io.to(`user:${userId}`).emit(event, payload);
-};
+export { emitTaskEvent };
 
 // 7. Health check endpoint (public)
 app.get('/api/health', (req: Request, res: Response) => {

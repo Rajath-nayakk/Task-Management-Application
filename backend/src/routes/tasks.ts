@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { pool } from '../db/pool.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { createTaskSchema, updateTaskSchema, taskQuerySchema } from '../validation/task.js';
+import { emitTaskEvent } from '../realtime/emitter.js';
 
 const router = Router();
 
@@ -216,10 +217,13 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       isCompleted,
     ]);
 
+    const createdTask = result.rows[0];
+    emitTaskEvent(userId, 'task:created', createdTask);
+
     return res.status(201).json({
       success: true,
       message: 'Task created successfully',
-      data: result.rows[0],
+      data: createdTask,
     });
   } catch (err) {
     next(err);
@@ -285,10 +289,13 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       userId,
     ]);
 
+    const updatedTask = result.rows[0];
+    emitTaskEvent(userId, 'task:updated', updatedTask);
+
     return res.status(200).json({
       success: true,
       message: 'Task updated successfully',
-      data: result.rows[0],
+      data: updatedTask,
     });
   } catch (err) {
     next(err);
@@ -339,11 +346,13 @@ router.patch('/:id/toggle', async (req: Request, res: Response, next: NextFuncti
     `;
 
     const result = await pool.query(sql, [newCompleted, newStatus, taskId, userId]);
+    const updatedTask = result.rows[0];
+    emitTaskEvent(userId, 'task:updated', updatedTask);
 
     return res.status(200).json({
       success: true,
       message: `Task marked as ${newCompleted ? 'completed' : 'incomplete'}`,
-      data: result.rows[0],
+      data: updatedTask,
     });
   } catch (err) {
     next(err);
@@ -369,6 +378,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
     }
 
     await pool.query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [taskId, userId]);
+    emitTaskEvent(userId, 'task:deleted', { id: taskId });
 
     return res.status(200).json({
       success: true,
@@ -391,6 +401,8 @@ router.delete('/', async (req: Request, res: Response, next: NextFunction) => {
       'DELETE FROM tasks WHERE user_id = $1 RETURNING id',
       [userId]
     );
+
+    emitTaskEvent(userId, 'task:cleared', { deletedCount: result.rowCount });
 
     return res.status(200).json({
       success: true,
