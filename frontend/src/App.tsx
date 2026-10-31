@@ -20,6 +20,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { SocketProvider } from './context/SocketContext';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AdminRoute } from './components/common/AdminRoute';
+import { ServerWakeBanner } from './components/common/ServerWakeBanner';
 
 export const App: React.FC = () => {
   return (
@@ -76,6 +77,7 @@ export const App: React.FC = () => {
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                <ServerWakeBanner />
                 <ToastContainer />
               </BrowserRouter>
             </TaskProvider>
