@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCyberTheme, CYBER_ACCENTS, CyberAccent } from '../context/CyberThemeContext';
+import { useSocket } from '../context/SocketContext';
 import { AppLayout } from '../components/layout/AppLayout';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -7,6 +8,7 @@ import { Cpu, Server, Palette } from 'lucide-react';
 
 export const SystemsPage: React.FC = () => {
   const { accent, setAccent, scanlinesEnabled, setScanlinesEnabled } = useCyberTheme();
+  const { isConnected, statusText } = useSocket();
 
   const accents: CyberAccent[] = ['cyan', 'magenta', 'green'];
 
@@ -113,8 +115,8 @@ export const SystemsPage: React.FC = () => {
 
             <div className="flex items-center justify-between p-3 bg-[#0a0a14] border border-[#1e1e38] cyber-clip-sm">
               <span className="text-slate-400">REAL-TIME SOCKET.IO LINK</span>
-              <Badge variant="cyan" dot>
-                ARMED // PHASE 6 READY
+              <Badge variant={isConnected ? 'green' : 'yellow'} dot>
+                {statusText}
               </Badge>
             </div>
 

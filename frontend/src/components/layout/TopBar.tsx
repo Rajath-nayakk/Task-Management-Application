@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCyberTheme, CYBER_ACCENTS, CyberAccent } from '../../context/CyberThemeContext';
+import { useSocket } from '../../context/SocketContext';
 import { Menu, LogOut, Terminal, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +13,7 @@ interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({ onOpenMobile, title }) => {
   const { logout } = useAuth();
   const { accent, setAccent } = useCyberTheme();
+  const { isConnected } = useSocket();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -75,9 +77,15 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenMobile, title }) => {
         </div>
 
         {/* Live System Telemetry Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#10101c] border border-[#1e1e38] cyber-clip-sm text-[10px] font-mono font-bold text-[#39ff88]">
-          <Activity className="w-3.5 h-3.5 animate-pulse" />
-          <span>LINK: READY</span>
+        <div
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#10101c] border cyber-clip-sm text-[10px] font-mono font-bold transition-colors ${
+            isConnected
+              ? 'border-[#39ff88]/40 text-[#39ff88]'
+              : 'border-amber-500/40 text-amber-400'
+          }`}
+        >
+          <Activity className={`w-3.5 h-3.5 ${isConnected ? 'animate-pulse text-[#39ff88]' : 'text-amber-400'}`} />
+          <span>LINK: {isConnected ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
 
         {/* Logout Button */}
