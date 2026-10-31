@@ -14,9 +14,12 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenMobile, title }) => {
   const { accent, setAccent } = useCyberTheme();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate('/login');
+    }
   };
 
   const accents: CyberAccent[] = ['cyan', 'magenta', 'green'];
