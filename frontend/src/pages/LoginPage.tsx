@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { loginSchema, LoginFormData } from '../types/schema';
-import { CheckSquare, ArrowRight, Sun, Moon, AlertCircle, Sparkles } from 'lucide-react';
+import { CheckSquare, ArrowRight, Sun, Moon, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -54,14 +54,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemo = () => {
-    setFormData({
-      email: 'alex@example.com',
-      password: 'password123',
-    });
-    setErrors({});
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-between p-4 sm:p-6 transition-colors">
       {/* Top Navbar */}
@@ -94,26 +86,6 @@ export const LoginPage: React.FC = () => {
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
               Sign in to manage and synchronize your personal tasks.
             </p>
-          </div>
-
-          {/* Quick Demo Credentials Autofill Banner */}
-          <div className="mb-6 p-3 rounded-2xl bg-brand-50/70 dark:bg-brand-950/40 border border-brand-200/80 dark:border-brand-800/60 flex items-center justify-between gap-3">
-            <div className="text-left">
-              <p className="text-xs font-bold text-brand-900 dark:text-brand-200 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
-                Demo Credentials
-              </p>
-              <p className="text-[11px] text-brand-700/80 dark:text-brand-300/70">
-                alex@example.com / password123
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleFillDemo}
-              className="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm shrink-0 transition-colors"
-            >
-              Fill Demo
-            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
