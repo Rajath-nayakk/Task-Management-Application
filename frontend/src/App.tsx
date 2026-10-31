@@ -17,6 +17,9 @@ import { SystemsPage } from './pages/SystemsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 
+import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { AdminRoute } from './components/common/AdminRoute';
+
 export const App: React.FC = () => {
   return (
     <CyberThemeProvider>
@@ -27,11 +30,46 @@ export const App: React.FC = () => {
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
-                  <Route path="/dashboard" element={<CommandCenterPage />} />
-                  <Route path="/tasks" element={<OperationsPage />} />
-                  <Route path="/analytics" element={<IntelligencePage />} />
-                  <Route path="/agents" element={<AgentNetworkPage />} />
-                  <Route path="/systems" element={<SystemsPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <CommandCenterPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <ProtectedRoute>
+                        <OperationsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <IntelligencePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/agents"
+                    element={
+                      <AdminRoute>
+                        <AgentNetworkPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="/systems"
+                    element={
+                      <ProtectedRoute>
+                        <SystemsPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
