@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { Task, TaskFilterState, TaskStats } from '../types/task';
-import { initialMockTasks } from '../mocks/tasks';
+import { tasksApi } from '../api/tasks';
+import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { TaskFormData } from '../types/schema';
 
@@ -11,12 +12,12 @@ interface TaskContextType {
   filters: TaskFilterState;
   isLoading: boolean;
   setFilters: React.Dispatch<React.SetStateAction<TaskFilterState>>;
-  addTask: (data: TaskFormData) => void;
-  updateTask: (id: string, data: TaskFormData) => void;
-  deleteTask: (id: string) => void;
-  toggleComplete: (id: string) => void;
-  clearAllTasks: () => void;
-  refreshTasks: () => void;
+  addTask: (data: TaskFormData) => Promise<void>;
+  updateTask: (id: string, data: TaskFormData) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  toggleComplete: (id: string) => Promise<void>;
+  clearAllTasks: () => Promise<void>;
+  refreshTasks: () => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -29,27 +30,39 @@ const initialFilters: TaskFilterState = {
 };
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(initialMockTasks);
+  const { isAuthenticated } = useAuth();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [filters, setFilters] = useState<TaskFilterState>(initialFilters);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { showToast } = useToast();
 
-  const refreshTasks = () => {
+  const refreshTasks = useCallback(async () => {
+    if (!isAuthenticated) {
+      setTasks([]);
+      return;
+    }
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const data = await tasksApi.getTasks();
+      setTasks(data);
+    } catch (err: any) {
+      console.error('Failed to load tasks:', err);
+    } finally {
       setIsLoading(false);
-    }, 400);
-  };
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     refreshTasks();
-  }, []);
+  }, [refreshTasks]);
 
-  const addTask = (data: TaskFormData) => {
+  // Optimistic Add with rollback
+  const addTask = async (data: TaskFormData) => {
     const isCompleted = data.status === 'done';
-    const newTask: Task = {
-      id: 'task-' + Math.random().toString(36).substring(2, 9),
-      userId: 'usr-101',
+    const tempId = 'temp-' + Date.now();
+    const optimisticTask: Task = {
+      id: tempId,
+      userId: 'pending',
       title: data.title,
       description: data.description || '',
       priority: data.priority,
@@ -60,15 +73,28 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatedAt: new Date().toISOString(),
     };
 
-    setTasks((prev) => [newTask, ...prev]);
-    showToast(`Task "${data.title}" created successfully!`, 'success');
+    setTasks((prev) => [optimisticTask, ...prev]);
+
+    try {
+      const created = await tasksApi.createTask(data);
+      setTasks((prev) => prev.map((t) => (t.id === tempId ? created : t)));
+      showToast(`Mission "${data.title}" deployed!`, 'success');
+    } catch (err: any) {
+      // Rollback
+      setTasks((prev) => prev.filter((t) => t.id !== tempId));
+      showToast(err.message || 'Failed to deploy mission.', 'error');
+      throw err;
+    }
   };
 
-  const updateTask = (id: string, data: TaskFormData) => {
+  // Optimistic Update with rollback
+  const updateTask = async (id: string, data: TaskFormData) => {
+    const previous = [...tasks];
+    const isCompleted = data.status === 'done';
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
-        const isCompleted = data.status === 'done';
         return {
           ...t,
           title: data.title,
@@ -81,16 +107,41 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       })
     );
-    showToast('Task updated successfully!', 'success');
+
+    try {
+      const updated = await tasksApi.updateTask(id, data);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      showToast('Mission parameters synchronized.', 'success');
+    } catch (err: any) {
+      // Rollback
+      setTasks(previous);
+      showToast(err.message || 'Failed to update mission.', 'error');
+      throw err;
+    }
   };
 
-  const deleteTask = (id: string) => {
+  // Optimistic Delete with rollback
+  const deleteTask = async (id: string) => {
+    const previous = [...tasks];
     const target = tasks.find((t) => t.id === id);
+
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    showToast(`Deleted "${target?.title || 'task'}"`, 'info');
+
+    try {
+      await tasksApi.deleteTask(id);
+      showToast(`Terminated mission "${target?.title || id}".`, 'info');
+    } catch (err: any) {
+      // Rollback
+      setTasks(previous);
+      showToast(err.message || 'Failed to delete mission.', 'error');
+      throw err;
+    }
   };
 
-  const toggleComplete = (id: string) => {
+  // Optimistic Toggle with rollback
+  const toggleComplete = async (id: string) => {
+    const previous = [...tasks];
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
@@ -104,12 +155,31 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       })
     );
+
+    try {
+      const updated = await tasksApi.toggleComplete(id);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } catch (err: any) {
+      // Rollback
+      setTasks(previous);
+      showToast(err.message || 'Failed to update mission status.', 'error');
+    }
   };
 
-  const clearAllTasks = () => {
-    const count = tasks.length;
+  // Optimistic Clear All with rollback
+  const clearAllTasks = async () => {
+    const previous = [...tasks];
     setTasks([]);
-    showToast(`Cleared all ${count} tasks`, 'info');
+
+    try {
+      await tasksApi.clearAllTasks();
+      showToast(`Cleared all ${previous.length} missions.`, 'info');
+    } catch (err: any) {
+      // Rollback
+      setTasks(previous);
+      showToast(err.message || 'Failed to clear missions.', 'error');
+      throw err;
+    }
   };
 
   // Compute filtered and sorted tasks
