@@ -49,11 +49,11 @@ export const RegisterPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await register(formData.name, formData.email);
+      await register(formData.name, formData.email, formData.password);
       showToast('Operative profile created. Clearance granted.', 'success');
       navigate('/dashboard');
-    } catch {
-      showToast('Enlistment protocol failed. Please re-check input.', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Enlistment protocol failed. Please re-check input.', 'error');
     } finally {
       setIsSubmitting(false);
     }

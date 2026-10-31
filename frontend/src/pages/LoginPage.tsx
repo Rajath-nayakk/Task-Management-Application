@@ -47,11 +47,11 @@ export const LoginPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await login(formData.email);
+      await login(formData.email, formData.password);
       showToast('Tactical clearance verified. Welcome back.', 'success');
       navigate('/dashboard');
-    } catch {
-      showToast('Authentication failed. Access denied.', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Authentication failed. Access denied.', 'error');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,39 +1,66 @@
-import React, { createContext, useContext, useState } from 'react';
-import { User } from '../types/task';
-import { mockUser } from '../mocks/tasks';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, authApi } from '../api/auth';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string) => Promise<boolean>;
-  register: (name: string, email: string) => Promise<boolean>;
-  logout: () => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Start with mockUser logged in by default for seamless exploration in Phase 2
-  const [user, setUser] = useState<User | null>(mockUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const login = async (_email: string): Promise<boolean> => {
-    setUser(mockUser);
+  // Restore session from httpOnly JWT cookie on initial mount
+  const refreshUser = async () => {
+    try {
+      const currentUser = await authApi.getMe();
+      setUser(currentUser);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshUser();
+
+    // Listen for global 401 unauthorized events to invalidate user session
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const loggedInUser = await authApi.login(email, password);
+    setUser(loggedInUser);
     return true;
   };
 
-  const register = async (name: string, email: string): Promise<boolean> => {
-    setUser({
-      id: 'usr-' + Math.random().toString(36).substring(2, 7),
-      name,
-      email,
-      role: 'user',
-      createdAt: new Date().toISOString(),
-    });
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    const registeredUser = await authApi.register(name, email, password);
+    setUser(registeredUser);
     return true;
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      setUser(null);
+    }
   };
 
   return (
@@ -41,9 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isAuthenticated: !!user,
+        isLoading,
         login,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}
