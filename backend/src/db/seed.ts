@@ -37,8 +37,9 @@ export async function runSeed() {
       console.log(`ℹ️ Admin user already exists: ${adminEmail}`);
     }
 
-    // 2. Seed Demo User
-    const demoHash = await bcrypt.hash(demoPassword, 10);
+    // 2. Seed Demo User (Development only)
+    if (process.env.NODE_ENV === 'development') {
+      const demoHash = await bcrypt.hash(demoPassword, 10);
     const existingDemo = await client.query('SELECT id FROM users WHERE email = $1', [demoEmail]);
 
     let demoUserId: string;
@@ -121,6 +122,9 @@ export async function runSeed() {
       console.log(`📋 Inserted ${sampleTasks.length} sample tasks for demo user.`);
     } else {
       console.log(`ℹ️ Demo user already has ${taskCount} tasks, skipping task seeding.`);
+    }
+    } else {
+      console.log('ℹ️ Non-development environment: skipping demo user and sample tasks.');
     }
 
     await client.query('COMMIT');

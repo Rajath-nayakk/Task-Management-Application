@@ -139,6 +139,46 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
+ * GET /api/tasks/:id
+ * Retrieve a single task owned by authenticated user
+ */
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const taskId = req.params.id;
+
+    const sql = `
+      SELECT
+        id,
+        user_id AS "userId",
+        title,
+        description,
+        priority,
+        status,
+        TO_CHAR(due_date, 'YYYY-MM-DD') AS "dueDate",
+        completed,
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      FROM tasks
+      WHERE id = $1 AND user_id = $2
+    `;
+
+    const result = await pool.query(sql, [taskId, userId]);
+
+    if (result.rows.length === 0) {
+      throw new AppError('Task not found', 404, 'NOT_FOUND');
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * POST /api/tasks
  * Create a new task for the authenticated user
  */
@@ -202,12 +242,8 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       [taskId]
     );
 
-    if (checkResult.rows.length === 0) {
+    if (checkResult.rows.length === 0 || checkResult.rows[0].user_id !== userId) {
       throw new AppError('Task not found', 404, 'NOT_FOUND');
-    }
-
-    if (checkResult.rows[0].user_id !== userId) {
-      throw new AppError('You do not have permission to modify this task', 403, 'FORBIDDEN');
     }
 
     const isCompleted =
@@ -274,12 +310,8 @@ router.patch('/:id/toggle', async (req: Request, res: Response, next: NextFuncti
       [taskId]
     );
 
-    if (checkResult.rows.length === 0) {
+    if (checkResult.rows.length === 0 || checkResult.rows[0].user_id !== userId) {
       throw new AppError('Task not found', 404, 'NOT_FOUND');
-    }
-
-    if (checkResult.rows[0].user_id !== userId) {
-      throw new AppError('You do not have permission to modify this task', 403, 'FORBIDDEN');
     }
 
     const currentTask = checkResult.rows[0];
@@ -332,12 +364,8 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       [taskId]
     );
 
-    if (checkResult.rows.length === 0) {
+    if (checkResult.rows.length === 0 || checkResult.rows[0].user_id !== userId) {
       throw new AppError('Task not found', 404, 'NOT_FOUND');
-    }
-
-    if (checkResult.rows[0].user_id !== userId) {
-      throw new AppError('You do not have permission to delete this task', 403, 'FORBIDDEN');
     }
 
     await pool.query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [taskId, userId]);

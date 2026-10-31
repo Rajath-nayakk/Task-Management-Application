@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Response, CookieOptions } from 'express';
 
 export interface UserPayload {
+  id: string;
   userId: string;
   email: string;
   role: 'user' | 'admin';
@@ -20,12 +21,21 @@ export const getCookieOptions = (): CookieOptions => {
   };
 };
 
-export const generateToken = (payload: UserPayload): string => {
+export const generateToken = (payload: { userId: string; email: string; role: 'user' | 'admin'; id?: string }): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not configured in backend/.env');
   }
-  return jwt.sign(payload, secret, { expiresIn: '7d' });
+  return jwt.sign(
+    {
+      id: payload.userId,
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    },
+    secret,
+    { expiresIn: '7d' }
+  );
 };
 
 export const setAuthCookie = (res: Response, token: string): void => {

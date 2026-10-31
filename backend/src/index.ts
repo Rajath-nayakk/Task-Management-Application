@@ -3,11 +3,14 @@ import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { Server as SocketIOServer } from 'socket.io';
 import tasksRouter from './routes/tasks.js';
-import { mockAuthMiddleware } from './middleware/mockAuth.js';
+import { authRouter } from './routes/auth.js';
+import { adminRouter } from './routes/admin.js';
+import { authenticateToken } from './middleware/auth.js';
+import { csrfProtection } from './middleware/csrf.js';
+import { generalRateLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -32,26 +35,16 @@ app.use(
 );
 
 // 3. Global Rate Limiter
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per 15 minutes
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: {
-      message: 'Too many requests from this IP, please try again after 15 minutes.',
-      code: 'RATE_LIMIT_EXCEEDED',
-    },
-  },
-});
-app.use(globalLimiter);
+app.use(generalRateLimiter);
 
 // 4. Request body and cookie parsers
 app.use(express.json());
 app.use(cookieParser());
 
-// 5. Socket.IO initialization
+// 5. CSRF Protection for state-changing browser requests
+app.use(csrfProtection);
+
+// 6. Socket.IO initialization
 const io = new SocketIOServer(server, {
   cors: {
     origin: FRONTEND_URL,
@@ -67,7 +60,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// 6. Health check endpoint (public, exempt from auth)
+// 7. Health check endpoint (public)
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
@@ -77,12 +70,16 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// 7. Tasks API Routes
-// Note: In Phase 3, mockAuthMiddleware scopes tasks to the demo user.
-// In Phase 4, this will be swapped with authentic JWT verification.
-app.use('/api/tasks', mockAuthMiddleware, tasksRouter);
+// 8. Auth API Routes (register, login, logout, me)
+app.use('/api/auth', authRouter);
 
-// 8. Centralized Error Handler (must be registered after all routes)
+// 9. Admin API Routes (directory, system missions)
+app.use('/api/admin', adminRouter);
+
+// 10. Tasks API Routes (protected by authentic JWT verification)
+app.use('/api/tasks', authenticateToken, tasksRouter);
+
+// 11. Centralized Error Handler (must be registered after all routes)
 app.use(errorHandler);
 
 // Export server, app, and io
@@ -93,6 +90,8 @@ if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
     console.log(`🚀 TaskBuddy backend server running on port ${PORT}`);
     console.log(`👉 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📋 Auth API: http://localhost:${PORT}/api/auth`);
     console.log(`📋 Tasks API: http://localhost:${PORT}/api/tasks`);
+    console.log(`📋 Admin API: http://localhost:${PORT}/api/admin`);
   });
 }
