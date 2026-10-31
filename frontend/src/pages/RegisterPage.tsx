@@ -2,19 +2,18 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useTheme } from '../context/ThemeContext';
-import { use3DStore } from '../store/use3DStore';
+import { useCyberTheme } from '../context/CyberThemeContext';
 import { registerSchema, RegisterFormData } from '../types/schema';
-import { AuthBackground3D } from '../components/3d/AuthBackground3D';
-import { CustomizerPanel } from '../components/3d/CustomizerPanel';
-import { CheckSquare, ArrowRight, Sun, Moon, AlertCircle } from 'lucide-react';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Terminal, ShieldCheck, Lock, Mail, User, ArrowRight } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
   const { showToast } = useToast();
-  const { theme, toggleTheme } = useTheme();
-  const { accent } = use3DStore();
+  const { accent, setAccent } = useCyberTheme();
 
   const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
@@ -51,209 +50,164 @@ export const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await register(formData.name, formData.email);
-      showToast('Account created successfully! Welcome to TaskBuddy.', 'success');
+      showToast('Operative profile created. Clearance granted.', 'success');
       navigate('/dashboard');
     } catch {
-      showToast('Registration failed. Please try again.', 'error');
+      showToast('Enlistment protocol failed. Please re-check input.', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-950 flex flex-col justify-between p-4 sm:p-6 text-slate-100 overflow-hidden">
-      {/* 3D Slow-moving particle/slab background */}
-      <AuthBackground3D />
-
-      {/* Top Navbar */}
-      <div className="relative z-10 max-w-7xl w-full mx-auto flex items-center justify-between">
+    <div className="relative min-h-screen bg-[#07070d] flex flex-col justify-between p-4 sm:p-6 text-slate-100 cyber-grid overflow-hidden">
+      {/* Top HUD bar */}
+      <header className="relative z-10 max-w-5xl w-full mx-auto flex items-center justify-between border-b border-[#1e1e38] pb-4">
         <Link to="/" className="flex items-center gap-2 group">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-105"
-            style={{
-              backgroundColor: accent.hex,
-              boxShadow: `0 0 16px ${accent.hex}40`,
-            }}
-          >
-            <CheckSquare className="w-5 h-5" />
+          <div className="w-8 h-8 bg-[#0d0d17] border border-[var(--neon-primary)] cyber-clip-sm flex items-center justify-center text-[var(--neon-primary)] shadow-[0_0_10px_var(--neon-glow-border)]">
+            <Terminal className="w-4 h-4" />
           </div>
-          <span className="font-display font-extrabold text-base text-white">
-            TaskBuddy
-          </span>
+          <div>
+            <span className="font-display font-black text-sm tracking-widest uppercase text-white">
+              TaskBuddy <span className="text-[var(--neon-primary)] text-xs font-mono">//HUD</span>
+            </span>
+          </div>
         </Link>
 
-        <button
-          onClick={toggleTheme}
-          className="p-2.5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md text-slate-300 hover:text-white transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-400" />}
-        </button>
-      </div>
+        {/* Accent switcher */}
+        <div className="flex items-center gap-1.5 bg-[#0d0d17] border border-[#1e1e38] px-2.5 py-1 cyber-clip-sm">
+          <span className="text-[10px] font-mono text-slate-500 uppercase mr-1">ACCENT</span>
+          {(['cyan', 'magenta', 'green'] as const).map((acc) => (
+            <button
+              key={acc}
+              type="button"
+              onClick={() => setAccent(acc)}
+              className={`w-3.5 h-3.5 rounded-full border transition-transform ${
+                accent === acc
+                  ? 'border-white scale-125 shadow-[0_0_8px_currentColor]'
+                  : 'border-transparent opacity-60 hover:opacity-100'
+              }`}
+              style={{
+                backgroundColor:
+                  acc === 'cyan' ? '#00f0ff' : acc === 'magenta' ? '#ff2bd6' : '#39ff88',
+              }}
+              title={`Switch to ${acc} accent`}
+            />
+          ))}
+        </div>
+      </header>
 
-      {/* Main Glassmorphic Card */}
-      <div className="relative z-10 max-w-md w-full mx-auto my-8">
-        <div className="bg-slate-900/70 border border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-2xl animate-slide-up">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-extrabold text-white font-display">
-              Create an account
+      {/* Main Terminal Register Card */}
+      <main className="relative z-10 max-w-md w-full mx-auto my-8">
+        <Card variant="bracket" glow className="p-6 sm:p-8">
+          {/* Header Metadata */}
+          <div className="flex items-center justify-between border-b border-[#1e1e38] pb-4 mb-6">
+            <div className="flex items-center gap-2 text-xs font-mono text-[var(--neon-primary)]">
+              <ShieldCheck className="w-4 h-4" />
+              <span>ENLIST_OPERATIVE // SEC_REGISTER</span>
+            </div>
+            <span className="text-[10px] font-mono text-slate-500">LEVEL: ALPHA</span>
+          </div>
+
+          <div className="mb-6">
+            <h1 className="text-xl sm:text-2xl font-display font-black uppercase tracking-wider text-white">
+              Operative Enlistment
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Start orchestrating tasks in an interactive 3D dimension.
+            <p className="text-xs font-mono text-slate-400 mt-1">
+              Create your tactical operator handle to deploy tasks.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-xs font-semibold text-slate-300 mb-1"
-              >
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Alex Morgan"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-slate-950/70 text-white placeholder-slate-500 focus:outline-none transition-colors ${
-                  errors.name
-                    ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-400'
-                    : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
-                }`}
-              />
-              {errors.name && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-rose-400">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.name}
-                </p>
-              )}
-            </div>
+            <Input
+              id="register-name"
+              name="name"
+              type="text"
+              label="Operative Call-Sign"
+              hint="FULL NAME"
+              icon={<User className="w-4 h-4" />}
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Alex 'Ghost' Vance"
+              error={errors.name}
+              required
+            />
 
-            {/* Email Address */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-xs font-semibold text-slate-300 mb-1"
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="name@example.com"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-slate-950/70 text-white placeholder-slate-500 focus:outline-none transition-colors ${
-                  errors.email
-                    ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-400'
-                    : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
-                }`}
-              />
-              {errors.email && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-rose-400">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.email}
-                </p>
-              )}
-            </div>
+            <Input
+              id="register-email"
+              name="email"
+              type="email"
+              label="Comm Link (Email)"
+              hint="REQUIRED"
+              icon={<Mail className="w-4 h-4" />}
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="operative@taskbuddy.corp"
+              error={errors.email}
+              required
+            />
 
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-xs font-semibold text-slate-300 mb-1"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="At least 6 characters"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-slate-950/70 text-white placeholder-slate-500 focus:outline-none transition-colors ${
-                  errors.password
-                    ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-400'
-                    : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
-                }`}
-              />
-              {errors.password && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-rose-400">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.password}
-                </p>
-              )}
-            </div>
+            <Input
+              id="register-password"
+              name="password"
+              type="password"
+              label="Pass-Cipher"
+              hint="MIN 6 CHARS"
+              icon={<Lock className="w-4 h-4" />}
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              error={errors.password}
+              required
+            />
 
-            {/* Confirm Password */}
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-xs font-semibold text-slate-300 mb-1"
-              >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Re-enter your password"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-slate-950/70 text-white placeholder-slate-500 focus:outline-none transition-colors ${
-                  errors.confirmPassword
-                    ? 'border-rose-400 focus:border-rose-500 ring-1 ring-rose-400'
-                    : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
-                }`}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-rose-400">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
+            <Input
+              id="register-confirmPassword"
+              name="confirmPassword"
+              type="password"
+              label="Verify Pass-Cipher"
+              hint="CONFIRM"
+              icon={<Lock className="w-4 h-4" />}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              error={errors.confirmPassword}
+              required
+            />
 
-            {/* Submit Button */}
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={isSubmitting}
-              className="w-full mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-white text-sm font-bold shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-              style={{
-                backgroundColor: accent.hex,
-                boxShadow: `0 4px 20px ${accent.hex}40`,
-              }}
+              icon={<ArrowRight className="w-4 h-4" />}
+              className="w-full mt-4"
             >
-              <span>{isSubmitting ? 'Creating Account...' : 'Get Started'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              {isSubmitting ? 'Enlisting Operative...' : 'Deploy Profile'}
+            </Button>
           </form>
 
-          {/* Footer link to Login */}
-          <div className="mt-6 text-center text-xs text-slate-400">
-            Already have an account?{' '}
+          {/* Switch to Login */}
+          <div className="mt-6 pt-4 border-t border-[#1e1e38] flex items-center justify-between text-xs font-mono text-slate-400">
+            <span>Already Enlisted?</span>
             <Link
               to="/login"
-              className="font-semibold hover:underline"
-              style={{ color: accent.hex }}
+              className="text-[var(--neon-primary)] hover:underline font-semibold uppercase"
             >
-              Sign in here
+              Authorize Link &rarr;
             </Link>
           </div>
-        </div>
-      </div>
+        </Card>
+      </main>
 
-      <CustomizerPanel />
-
-      {/* Footer */}
-      <footer className="relative z-10 text-center text-xs text-slate-500 pb-2">
-        TaskBuddy • Real-Time Spatial Workspace
+      {/* Terminal Footer */}
+      <footer className="relative z-10 text-center text-xs font-mono text-slate-600 pb-2 flex items-center justify-center gap-3">
+        <span>SYS.V2.5.0 // TACTICAL DASHBOARD</span>
+        <span>•</span>
+        <span className="text-emerald-400 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          REGISTRY_READY
+        </span>
       </footer>
     </div>
   );

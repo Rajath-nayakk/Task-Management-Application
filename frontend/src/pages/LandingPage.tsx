@@ -1,302 +1,134 @@
-import React, { useEffect, useRef, Suspense } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Lenis from 'lenis';
-import { use3DStore } from '../store/use3DStore';
-import { CustomizerPanel } from '../components/3d/CustomizerPanel';
-import { WebGLFallback } from '../components/3d/WebGLFallback';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { useCyberTheme } from '../context/CyberThemeContext';
 import {
-  CheckSquare,
+  Radio,
   ArrowRight,
-  Layers,
-  Sparkles,
-  Zap,
-  Users,
-  ShieldCheck,
-  ChevronDown,
+  Shield,
+  Target,
+  BarChart3,
 } from 'lucide-react';
 
-// Lazy-load the 3D Canvas
-const CinematicCanvas = React.lazy(
-  () => import('../components/3d/CinematicCanvas')
-);
-
 export const LandingPage: React.FC = () => {
-  const { setScrollProgress, accent } = use3DStore();
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Initialize Lenis smooth scroll
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-
-    const handleScroll = () => {
-      const totalScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      if (totalScroll > 0) {
-        const progress = Math.min(1, Math.max(0, window.scrollY / totalScroll));
-        setScrollProgress(progress);
-      }
-    };
-
-    lenis.on('scroll', handleScroll);
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    const rafId = requestAnimationFrame(raf);
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      lenis.destroy();
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [setScrollProgress]);
+  const { accentConfig } = useCyberTheme();
 
   return (
-    <div
-      ref={containerRef}
-      className="relative min-h-[420vh] bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white"
-    >
-      {/* 3D WebGL Background Canvas with Suspense */}
-      <Suspense fallback={<WebGLFallback accentHex={accent.hex} />}>
-        <CinematicCanvas />
-      </Suspense>
-
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-5 bg-slate-950/40 backdrop-blur-xl border-b border-slate-800/40 transition-colors">
+    <div className="min-h-screen bg-[#07070d] text-slate-100 cyber-bg flex flex-col justify-between selection:bg-[var(--neon-primary)] selection:text-black">
+      {/* Top Navigation */}
+      <header className="h-20 border-b border-[#1e1e38] px-6 sm:px-12 flex items-center justify-between bg-[#07070d]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform hover:scale-105"
+            className="w-10 h-10 flex items-center justify-center text-black font-extrabold cyber-clip-sm"
             style={{
-              backgroundColor: accent.hex,
-              boxShadow: `0 0 20px ${accent.hex}40`,
+              backgroundColor: accentConfig.primary,
+              boxShadow: `0 0 15px ${accentConfig.glow}`,
             }}
           >
-            <CheckSquare className="w-5 h-5 stroke-[2.5]" />
+            <Radio className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <span className="font-display font-extrabold text-lg tracking-tight text-white">
-              TaskBuddy
-            </span>
-            <span
-              className="ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border"
-              style={{
-                borderColor: `${accent.hex}50`,
-                backgroundColor: `${accent.hex}15`,
-                color: accent.hex,
-              }}
-            >
-              3D Workspace
-            </span>
+            <div className="font-display font-extrabold text-lg tracking-widest text-white">
+              TASKBUDDY
+            </div>
+            <div className="font-mono text-[9px] uppercase tracking-wider text-[var(--neon-primary)]">
+              TACTICAL DASHBOARD // HUD v1.0
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-4">
           <Link
             to="/login"
-            className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+            className="px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
           >
-            Sign In
+            Access Terminal
           </Link>
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
-            style={{
-              backgroundColor: accent.hex,
-              boxShadow: `0 4px 20px ${accent.hex}40`,
-            }}
-          >
-            <span>Launch Board</span>
-            <ArrowRight className="w-4 h-4" />
+          <Link to="/register">
+            <Button variant="primary" icon={<ArrowRight className="w-4 h-4" />}>
+              Deploy Unit
+            </Button>
           </Link>
         </div>
       </header>
 
-      {/* Floating 3D Customizer Studio Panel */}
-      <CustomizerPanel />
-
-      {/* Scroll Sections Container (Overlays 3D Canvas) */}
-      <div className="relative z-10 pointer-events-none">
-        {/* SECTION 1: HERO (0vh - 100vh) */}
-        <section className="h-screen flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto pt-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="pointer-events-auto space-y-6"
-          >
-            <div
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold backdrop-blur-md"
-              style={{
-                borderColor: `${accent.hex}50`,
-                backgroundColor: `${accent.hex}15`,
-                color: accent.hex,
-              }}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>THE FUTURE OF TASK EXECUTION • PROCEDURAL 3D</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight font-display text-white leading-[1.1]">
-              Focus in Every{' '}
-              <span
-                className="bg-clip-text text-transparent transition-all duration-500"
-                style={{
-                  backgroundImage: `linear-gradient(to right, #ffffff, ${accent.hex}, #38bdf8)`,
-                }}
-              >
-                Dimension.
-              </span>
-            </h1>
-
-            <p className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
-              TaskBuddy elevates personal workflow into an interactive, spatial
-              engine. Scroll to explore the exploded task monolith.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-bold text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                style={{
-                  backgroundColor: accent.hex,
-                  boxShadow: `0 6px 30px ${accent.hex}50`,
-                }}
-              >
-                <span>Get Started Free</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-semibold bg-slate-900/80 hover:bg-slate-900 border border-slate-700/80 text-slate-200 backdrop-blur-md hover:scale-105 transition-all"
-              >
-                <Layers className="w-4 h-4 text-slate-400" />
-                <span>Open Dashboard</span>
-              </Link>
-            </div>
-          </motion.div>
-
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-400 animate-bounce pointer-events-none">
-            <span className="text-[11px] font-bold tracking-widest uppercase">
-              Scroll to Explode Core
-            </span>
-            <ChevronDown className="w-4 h-4" />
+      {/* Main Hero Section */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-16 sm:py-24 text-center space-y-12">
+        <div className="space-y-6 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#121221] border border-[var(--neon-primary)]/40 cyber-clip-sm text-xs font-mono uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[var(--neon-primary)] animate-pulse" />
+            <span className="text-[var(--neon-primary)] font-bold">OPERATIONAL PROTOCOL 2026</span>
           </div>
-        </section>
 
-        {/* SECTION 2: PLAN (100vh) */}
-        <section className="h-screen flex items-center px-6 sm:px-16 max-w-6xl mx-auto">
-          <div className="max-w-md pointer-events-auto bg-slate-950/70 border border-slate-800/80 rounded-3xl p-8 backdrop-blur-2xl shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-5">
-              <Layers className="w-6 h-6" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
-              01 • Structured Architecture
-            </span>
-            <h2 className="text-3xl font-bold font-display text-white mt-1 mb-3">
-              Plan With Precision.
-            </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Organize priorities with zero friction. Low, Medium, and High
-              tiers guide daily velocity while preventing burnout.
-            </p>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold font-display tracking-wider text-white leading-tight">
+            TACTICAL MISSION DISPATCH & TELEMETRY
+          </h1>
+
+          <p className="text-sm sm:text-base font-mono text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            High-velocity task orchestration designed for demanding workflows. Plan missions, monitor priority queues, and sync telemetry in real time.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <Link to="/dashboard">
+              <Button size="lg" variant="primary" icon={<Target className="w-4 h-4" />}>
+                Enter Command Center
+              </Button>
+            </Link>
+
+            <Link to="/login">
+              <Button size="lg" variant="secondary" icon={<ArrowRight className="w-4 h-4" />}>
+                Operator Sign In
+              </Button>
+            </Link>
           </div>
-        </section>
+        </div>
 
-        {/* SECTION 3: TRACK & EXPLODED VIEW (200vh) */}
-        <section className="h-screen flex items-center justify-end px-6 sm:px-16 max-w-6xl mx-auto">
-          <div className="max-w-md pointer-events-auto bg-slate-950/70 border border-slate-800/80 rounded-3xl p-8 backdrop-blur-2xl shadow-2xl text-right">
-            <div
-              className="w-12 h-12 ml-auto rounded-2xl border flex items-center justify-center mb-5"
-              style={{
-                backgroundColor: `${accent.hex}15`,
-                borderColor: `${accent.hex}40`,
-                color: accent.hex,
-              }}
-            >
-              <Zap className="w-6 h-6" />
+        {/* Feature Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 text-left">
+          <Card variant="bracket" className="p-6">
+            <div className="w-10 h-10 mb-4 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#00f0ff] flex items-center justify-center cyber-clip-sm">
+              <Target className="w-5 h-5" />
             </div>
-            <span
-              className="text-xs font-bold uppercase tracking-wider"
-              style={{ color: accent.hex }}
-            >
-              02 • Interactive Exploded Telemetry
-            </span>
-            <h2 className="text-3xl font-bold font-display text-white mt-1 mb-3">
-              Track In Real-Time.
-            </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Watch your task monolith separate dynamically into To Do, In
-              Progress, and Done layers with floating telemetry cards.
+            <h3 className="font-display font-bold text-base text-white tracking-wider uppercase mb-2">
+              Command & Operations
+            </h3>
+            <p className="text-xs font-mono text-slate-400 leading-relaxed">
+              Full-spectrum mission tracking with priority queues, instant status toggles, and overdue risk detection.
             </p>
-          </div>
-        </section>
+          </Card>
 
-        {/* SECTION 4: COMPLETE (300vh) */}
-        <section className="h-screen flex items-center px-6 sm:px-16 max-w-6xl mx-auto">
-          <div className="max-w-md pointer-events-auto bg-slate-950/70 border border-slate-800/80 rounded-3xl p-8 backdrop-blur-2xl shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5">
-              <CheckSquare className="w-6 h-6" />
+          <Card variant="bracket" className="p-6">
+            <div className="w-10 h-10 mb-4 bg-[#ff2bd6]/10 border border-[#ff2bd6]/30 text-[#ff2bd6] flex items-center justify-center cyber-clip-sm">
+              <BarChart3 className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              03 • Dopamine-Driven Velocity
-            </span>
-            <h2 className="text-3xl font-bold font-display text-white mt-1 mb-3">
-              Complete & Ascend.
-            </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Every completed item lights up the procedural progress torus. Live
-              completion stats, overdue alerts, and celebratory particle bursts.
+            <h3 className="font-display font-bold text-base text-white tracking-wider uppercase mb-2">
+              Tactical Intelligence
+            </h3>
+            <p className="text-xs font-mono text-slate-400 leading-relaxed">
+              Real-time SVG velocity telemetry, 7-day completion curves, and sector workload distribution matrices.
             </p>
-          </div>
-        </section>
+          </Card>
 
-        {/* SECTION 5: COLLABORATE & ENTER (400vh) */}
-        <section className="h-screen flex flex-col items-center justify-center text-center px-4 max-w-3xl mx-auto">
-          <div className="pointer-events-auto bg-slate-950/80 border border-slate-800/80 rounded-3xl p-8 sm:p-12 backdrop-blur-2xl shadow-2xl space-y-6">
-            <div className="flex items-center justify-center gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                <Users className="w-6 h-6" />
-              </div>
-              <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
+          <Card variant="bracket" className="p-6">
+            <div className="w-10 h-10 mb-4 bg-[#39ff88]/10 border border-[#39ff88]/30 text-[#39ff88] flex items-center justify-center cyber-clip-sm">
+              <Shield className="w-5 h-5" />
             </div>
-
-            <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-white">
-              Instant Synchronicity.
-            </h2>
-
-            <p className="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-              Powered by Socket.IO room-based isolation and PostgreSQL
-              durability. Changes in one tab synchronize across all devices
-              instantly.
+            <h3 className="font-display font-bold text-base text-white tracking-wider uppercase mb-2">
+              Agent Clearances
+            </h3>
+            <p className="text-xs font-mono text-slate-400 leading-relaxed">
+              Role-based authorization protecting sensitive operations. Multi-tenant data isolation enforced by PostgreSQL.
             </p>
+          </Card>
+        </div>
+      </main>
 
-            <div className="pt-2">
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                style={{
-                  backgroundColor: accent.hex,
-                  boxShadow: `0 6px 30px ${accent.hex}50`,
-                }}
-              >
-                <span>Enter TaskBuddy Board</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-[#1e1e38] py-6 px-6 sm:px-12 text-center text-xs font-mono text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>TASKBUDDY // CYBERPUNK TACTICAL SUITE</div>
+        <div className="text-[10px] text-slate-600">SECURE PROTOCOL • ALL SYSTEMS NOMINAL</div>
+      </footer>
     </div>
   );
 };
