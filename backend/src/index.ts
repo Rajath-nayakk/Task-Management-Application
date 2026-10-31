@@ -15,6 +15,39 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
+// Production environment fail-fast validation
+function validateProductionEnv(): void {
+  if (process.env.NODE_ENV === 'production') {
+    const requiredVars = [
+      'DATABASE_URL',
+      'JWT_SECRET',
+      'FRONTEND_URL',
+      'ADMIN_EMAIL',
+      'ADMIN_PASSWORD',
+    ];
+
+    const missing = requiredVars.filter(
+      (name) => !process.env[name] || process.env[name]!.trim() === ''
+    );
+
+    if (missing.length > 0) {
+      console.error(
+        `❌ [CRITICAL CONFIG ERROR] Missing required production environment variable(s): ${missing.join(', ')}. Server initialization aborted.`
+      );
+      process.exit(1);
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || '';
+    if (jwtSecret.length < 32) {
+      console.warn(
+        `⚠️  [SECURITY WARNING] JWT_SECRET is shorter than 32 characters (current length: ${jwtSecret.length}). For high production security, a 32+ character random secret is strongly recommended.`
+      );
+    }
+  }
+}
+
+validateProductionEnv();
+
 const app = express();
 const server = http.createServer(app);
 
