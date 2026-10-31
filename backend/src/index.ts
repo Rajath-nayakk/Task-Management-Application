@@ -44,7 +44,26 @@ app.use(cookieParser());
 // 5. CSRF Protection for state-changing browser requests
 app.use(csrfProtection);
 
-// 6. Socket.IO initialization
+import jwt from 'jsonwebtoken';
+import { COOKIE_NAME, UserPayload } from './utils/token.js';
+
+function parseCookies(cookieHeader?: string): Record<string, string> {
+  const list: Record<string, string> = {};
+  if (!cookieHeader) return list;
+
+  cookieHeader.split(';').forEach((cookie) => {
+    let [name, ...rest] = cookie.split('=');
+    name = name?.trim();
+    if (!name) return;
+    const value = rest.join('=').trim();
+    if (!value) return;
+    list[name] = decodeURIComponent(value);
+  });
+
+  return list;
+}
+
+// 6. Socket.IO initialization with authenticated handshake
 const io = new SocketIOServer(server, {
   cors: {
     origin: FRONTEND_URL,
@@ -52,8 +71,30 @@ const io = new SocketIOServer(server, {
   },
 });
 
+io.use((socket, next) => {
+  try {
+    const cookies = parseCookies(socket.handshake.headers.cookie);
+    const token = cookies[COOKIE_NAME] || socket.handshake.auth?.token;
+
+    if (!token) {
+      return next(new Error('Unauthorized socket: Missing token'));
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return next(new Error('Server configuration error: JWT_SECRET missing'));
+    }
+
+    const decoded = jwt.verify(token, secret) as UserPayload;
+    socket.data.user = decoded;
+    next();
+  } catch (err: any) {
+    return next(new Error(`Unauthorized socket: ${err.message || 'Invalid token'}`));
+  }
+});
+
 io.on('connection', (socket) => {
-  console.log(`[Socket.IO] Client connected: ${socket.id}`);
+  console.log(`[Socket.IO] Authenticated client connected: ${socket.id} (user: ${socket.data.user?.userId || socket.data.user?.id})`);
 
   socket.on('disconnect', () => {
     console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
