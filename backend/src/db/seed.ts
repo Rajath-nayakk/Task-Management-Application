@@ -7,8 +7,14 @@ dotenv.config();
 export async function runSeed() {
   console.log('🌱 Starting database seeding...');
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@taskbuddy.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'DevAdminPassword123!';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const adminEmail = process.env.ADMIN_EMAIL || (isProduction ? '' : 'admin@taskbuddy.com');
+  const adminPassword = process.env.ADMIN_PASSWORD || (isProduction ? '' : 'DevAdminPassword123!');
+
+  if (isProduction && (!adminEmail || !adminPassword)) {
+    console.error('❌ CRITICAL: In production (NODE_ENV=production), ADMIN_EMAIL and ADMIN_PASSWORD must be configured.');
+    throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required in production');
+  }
 
   const demoEmail = process.env.DEMO_EMAIL || 'alex@example.com';
   const demoPassword = process.env.DEMO_PASSWORD || 'DevUserPassword123!';

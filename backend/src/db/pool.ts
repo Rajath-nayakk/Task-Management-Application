@@ -21,7 +21,7 @@ if (!databaseUrl || databaseUrl.trim() === '') {
 }
 
 // SSL is configurable via DB_SSL (default "false" for local development, "true" for hosted databases like Supabase/Neon/Render)
-const isSsl = process.env.DB_SSL === 'true';
+const isSsl = process.env.DB_SSL === 'true' || (process.env.NODE_ENV === 'production' && process.env.DB_SSL !== 'false');
 
 export const pool = new Pool({
   connectionString: databaseUrl,
