@@ -94,12 +94,24 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log(`[Socket.IO] Authenticated client connected: ${socket.id} (user: ${socket.data.user?.userId || socket.data.user?.id})`);
+  const userId = socket.data.user?.userId || socket.data.user?.id;
+  if (userId) {
+    socket.join(`user:${userId}`);
+    console.log(`[Socket.IO] Socket ${socket.id} joined room user:${userId}`);
+  }
 
   socket.on('disconnect', () => {
     console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
   });
 });
+
+export const emitTaskEvent = (
+  userId: string,
+  event: 'task:created' | 'task:updated' | 'task:deleted' | 'task:cleared',
+  payload: any
+): void => {
+  io.to(`user:${userId}`).emit(event, payload);
+};
 
 // 7. Health check endpoint (public)
 app.get('/api/health', (req: Request, res: Response) => {
