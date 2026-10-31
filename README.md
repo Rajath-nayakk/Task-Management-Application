@@ -212,7 +212,7 @@ Follow these exact numbered steps to deploy TaskBuddy into production:
 3. Configure the build parameters:
    - **Root Directory**: `backend`
    - **Environment**: `Node`
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install --include=dev && npm run build`
    - **Start Command**: `npm start`
    - **Health Check Path**: `/api/health`
 4. Set the **Environment Variables** in the Render Dashboard:

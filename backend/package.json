@@ -19,6 +19,9 @@
     "socketio",
     "postgres"
   ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
