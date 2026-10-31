@@ -17,6 +17,7 @@ import { SystemsPage } from './pages/SystemsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 
+import { SocketProvider } from './context/SocketContext';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AdminRoute } from './components/common/AdminRoute';
 
@@ -26,7 +27,8 @@ export const App: React.FC = () => {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <TaskProvider>
+            <SocketProvider>
+              <TaskProvider>
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
@@ -77,7 +79,8 @@ export const App: React.FC = () => {
                 <ToastContainer />
               </BrowserRouter>
             </TaskProvider>
-          </AuthProvider>
+          </SocketProvider>
+        </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
     </CyberThemeProvider>
