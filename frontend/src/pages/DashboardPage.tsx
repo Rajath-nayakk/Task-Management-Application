@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTasks } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
+import { use3DStore } from '../store/use3DStore';
 import { Header } from '../components/common/Header';
 import { ProgressTracker } from '../components/tasks/ProgressTracker';
 import { TaskFilters } from '../components/tasks/TaskFilters';
@@ -9,12 +10,14 @@ import { TaskModal } from '../components/tasks/TaskModal';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { EmptyState } from '../components/tasks/EmptyState';
 import { TaskSkeleton } from '../components/tasks/TaskSkeleton';
+import { CustomizerPanel } from '../components/3d/CustomizerPanel';
 import { Task } from '../types/task';
 import { TaskFormData } from '../types/schema';
 import { Plus, Trash2, Sparkles, RefreshCw } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const { accent } = use3DStore();
   const {
     tasks,
     filteredTasks,
@@ -81,7 +84,7 @@ export const DashboardPage: React.FC = () => {
   const targetTaskForDelete = tasks.find((t) => t.id === deleteTargetId);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors selection:bg-indigo-500 selection:text-white">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -92,12 +95,19 @@ export const DashboardPage: React.FC = () => {
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-display text-slate-900 dark:text-white">
                 Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}!
               </h1>
-              <span className="hidden sm:inline-flex p-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+              <span
+                className="hidden sm:inline-flex p-1 rounded-lg border"
+                style={{
+                  backgroundColor: `${accent.hex}15`,
+                  borderColor: `${accent.hex}40`,
+                  color: accent.hex,
+                }}
+              >
                 <Sparkles className="w-4 h-4" />
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Keep track of daily priorities and achieve goals with real-time progress.
+              Keep track of daily priorities and achieve goals with real-time 3D telemetry.
             </p>
           </div>
 
@@ -128,7 +138,11 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenAdd}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold shadow-md shadow-brand-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-white text-xs sm:text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-indigo-500"
+              style={{
+                backgroundColor: accent.hex,
+                boxShadow: `0 4px 20px ${accent.hex}40`,
+              }}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Add Task</span>
@@ -136,7 +150,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Progress Tracker Card */}
+        {/* 3D Progress Tracker Card */}
         <ProgressTracker stats={stats} />
 
         {/* Search, Filter Pills & Sort Drawer */}
@@ -154,7 +168,10 @@ export const DashboardPage: React.FC = () => {
               Tasks ({filteredTasks.length} {filteredTasks.length === 1 ? 'item' : 'items'})
             </h2>
             {isFiltering && (
-              <span className="text-[11px] font-medium text-brand-600 dark:text-brand-400">
+              <span
+                className="text-[11px] font-bold"
+                style={{ color: accent.hex }}
+              >
                 Filtered view
               </span>
             )}
@@ -182,6 +199,9 @@ export const DashboardPage: React.FC = () => {
           )}
         </section>
       </main>
+
+      {/* Floating 3D Studio Customizer */}
+      <CustomizerPanel />
 
       {/* Task Creation & Edit Modal */}
       <TaskModal

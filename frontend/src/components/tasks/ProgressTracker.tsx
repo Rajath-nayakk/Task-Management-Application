@@ -1,6 +1,8 @@
 import React from 'react';
 import { TaskStats } from '../../types/task';
-import { CheckCircle2, Clock, AlertCircle, ListTodo } from 'lucide-react';
+import { ProgressWidget3D } from '../3d/ProgressWidget3D';
+import { use3DStore } from '../../store/use3DStore';
+import { CheckCircle2, Clock, AlertCircle, ListTodo, Flame } from 'lucide-react';
 
 interface ProgressTrackerProps {
   stats: TaskStats;
@@ -8,77 +10,68 @@ interface ProgressTrackerProps {
 
 export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ stats }) => {
   const { total, completed, inProgress, overdue, percentComplete } = stats;
-
-  // Calculate SVG circular stroke
-  const radius = 34;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentComplete / 100) * circumference;
+  const { accent } = use3DStore();
 
   let motivation = 'Ready to conquer your goals today?';
   if (total === 0) {
-    motivation = 'No tasks yet. Create one to get started!';
+    motivation = 'No tasks on board. Create one to begin your streak!';
   } else if (percentComplete === 100) {
-    motivation = 'Outstanding! All tasks are completed! 🎉';
+    motivation = 'Sensational! 100% of tasks completed! 🎉';
   } else if (percentComplete >= 75) {
-    motivation = 'Almost there! Just a final push! 🚀';
+    motivation = 'Final sprint! You are almost at the finish line! 🚀';
   } else if (percentComplete >= 50) {
-    motivation = 'Halfway done! Keep up the momentum! 💪';
+    motivation = 'Over halfway done! Momentum is surging! 💪';
   } else if (percentComplete > 0) {
-    motivation = 'Good progress underway! Keep going! ✨';
+    motivation = 'Solid momentum! Keep clearing the board! ✨';
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 transition-all">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        {/* Left: Ring + Headline */}
-        <div className="flex items-center gap-5 w-full md:w-auto">
-          {/* Circular Progress Ring */}
-          <div className="relative flex items-center justify-center shrink-0 w-24 h-24">
-            <svg className="w-24 h-24 transform -rotate-90" aria-hidden="true">
-              <circle
-                cx="48"
-                cy="48"
-                r={radius}
-                className="text-slate-100 dark:text-slate-800"
-                strokeWidth="8"
-                stroke="currentColor"
-                fill="transparent"
-              />
-              <circle
-                cx="48"
-                cy="48"
-                r={radius}
-                className="text-brand-600 transition-all duration-700 ease-out"
-                strokeWidth="8"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="transparent"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
-                {percentComplete}%
-              </span>
-              <span className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">
-                Done
-              </span>
-            </div>
-          </div>
+    <div className="relative overflow-hidden bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-200/80 dark:border-slate-800/80 transition-all">
+      {/* Dynamic ambient background aura matching customizer accent */}
+      <div
+        className="absolute -top-24 -left-24 w-64 h-64 rounded-full blur-[90px] opacity-15 pointer-events-none transition-all duration-700"
+        style={{ backgroundColor: accent.hex }}
+      />
 
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
-              Task Progress Tracker
-            </h2>
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* Left: 3D Procedural Torus Widget + Headline */}
+        <div className="flex items-center gap-5 w-full md:w-auto">
+          {/* 3D Progress Torus */}
+          <ProgressWidget3D percentComplete={percentComplete} />
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white font-display tracking-tight">
+                Productivity Telemetry
+              </h2>
+              {percentComplete >= 50 && (
+                <span
+                  className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border"
+                  style={{
+                    backgroundColor: `${accent.hex}15`,
+                    borderColor: `${accent.hex}40`,
+                    color: accent.hex,
+                  }}
+                >
+                  <Flame className="w-3 h-3" />
+                  Streak On
+                </span>
+              )}
+            </div>
+
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
               {motivation}
             </p>
-            {/* Linear Progress Bar */}
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+
+            {/* Glowing Linear Progress Bar */}
+            <div className="w-full bg-slate-200/80 dark:bg-slate-800/80 h-2 rounded-full mt-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-brand-600 to-indigo-500 h-full rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${percentComplete}%` }}
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${percentComplete}%`,
+                  backgroundColor: accent.hex,
+                  boxShadow: `0 0 12px ${accent.hex}`,
+                }}
                 role="progressbar"
                 aria-valuenow={percentComplete}
                 aria-valuemin={0}
@@ -89,63 +82,63 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ stats }) => {
           </div>
         </div>
 
-        {/* Right: Quick Stat Badges */}
+        {/* Right: Glass Stat Metric Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
           {/* Total */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <div className="p-2 rounded-xl bg-slate-200/70 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-md">
+            <div className="p-2 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
               <ListTodo className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-base font-extrabold text-slate-900 dark:text-white leading-none">
+              <div className="text-base font-extrabold text-slate-900 dark:text-white leading-none font-display">
                 {total}
               </div>
-              <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
                 Total
               </div>
             </div>
           </div>
 
           {/* Completed */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 backdrop-blur-md">
             <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-base font-extrabold text-emerald-900 dark:text-emerald-100 leading-none">
+              <div className="text-base font-extrabold text-emerald-900 dark:text-emerald-200 leading-none font-display">
                 {completed}
               </div>
-              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 uppercase">
+              <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 uppercase tracking-wider">
                 Done
               </div>
             </div>
           </div>
 
           {/* In Progress */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-800/40 backdrop-blur-md">
             <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-base font-extrabold text-blue-900 dark:text-blue-100 leading-none">
+              <div className="text-base font-extrabold text-blue-900 dark:text-blue-200 leading-none font-display">
                 {inProgress}
               </div>
-              <div className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 mt-1 uppercase">
+              <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mt-1 uppercase tracking-wider">
                 Active
               </div>
             </div>
           </div>
 
           {/* Overdue */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-800/40 backdrop-blur-md">
             <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
               <AlertCircle className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-base font-extrabold text-rose-900 dark:text-rose-100 leading-none">
+              <div className="text-base font-extrabold text-rose-900 dark:text-rose-200 leading-none font-display">
                 {overdue}
               </div>
-              <div className="text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1 uppercase">
+              <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 mt-1 uppercase tracking-wider">
                 Overdue
               </div>
             </div>
