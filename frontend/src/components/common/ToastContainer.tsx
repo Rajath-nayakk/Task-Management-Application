@@ -10,7 +10,7 @@ export const ToastContainer: React.FC = () => {
   return (
     <div
       role="region"
-      aria-label="Notifications"
+      aria-label="Tactical Notifications"
       className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"
     >
       {toasts.map((toast) => {
@@ -21,25 +21,27 @@ export const ToastContainer: React.FC = () => {
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border backdrop-blur-md transition-all duration-200 animate-slide-up ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 bg-[#0d0d17]/95 border cyber-clip-sm shadow-2xl backdrop-blur-md transition-all duration-200 animate-slide-up ${
               isSuccess
-                ? 'bg-emerald-50/95 dark:bg-emerald-950/90 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100'
+                ? 'border-[#39ff88]/60 shadow-[0_0_15px_rgba(57,255,136,0.2)] text-[#39ff88]'
                 : isError
-                ? 'bg-rose-50/95 dark:bg-rose-950/90 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-100'
-                : 'bg-slate-900/95 dark:bg-slate-800/95 border-slate-700 text-white'
+                ? 'border-rose-500/60 shadow-[0_0_15px_rgba(244,63,94,0.2)] text-rose-400'
+                : 'border-[var(--neon-primary)]/60 shadow-[0_0_15px_var(--neon-glow-border)] text-[var(--neon-primary)]'
             }`}
           >
             <div className="shrink-0 mt-0.5">
-              {isSuccess && <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
-              {isError && <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />}
-              {!isSuccess && !isError && <Info className="w-5 h-5 text-brand-400" />}
+              {isSuccess && <CheckCircle2 className="w-5 h-5 text-[#39ff88]" />}
+              {isError && <AlertCircle className="w-5 h-5 text-rose-400" />}
+              {!isSuccess && !isError && <Info className="w-5 h-5 text-[var(--neon-primary)]" />}
             </div>
 
-            <p className="text-sm font-medium leading-snug flex-1">{toast.message}</p>
+            <p className="text-xs font-mono font-semibold leading-relaxed flex-1 text-slate-200">
+              {toast.message}
+            </p>
 
             <button
               onClick={() => removeToast(toast.id)}
-              className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg p-1 transition-colors"
+              className="shrink-0 text-slate-500 hover:text-white p-1"
               aria-label="Dismiss notification"
             >
               <X className="w-4 h-4" />

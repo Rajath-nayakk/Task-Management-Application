@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal } from './Modal';
+import { Button } from '../ui/Button';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmDialogProps {
@@ -18,38 +19,29 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   title,
   message,
-  confirmLabel = 'Confirm',
+  confirmLabel = 'CONFIRM',
   confirmVariant = 'danger',
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
-      <div className="flex items-center gap-3 mb-4 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-200">
-        <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
-        <p className="text-xs leading-relaxed">{message}</p>
+      <div className="flex items-start gap-3 mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 cyber-clip-sm">
+        <AlertTriangle className="w-5 h-5 shrink-0 text-rose-400 mt-0.5" />
+        <p className="text-xs font-mono leading-relaxed">{message}</p>
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        >
+        <Button variant="secondary" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={confirmVariant === 'danger' ? 'danger' : 'primary'}
           onClick={() => {
             onConfirm();
             onClose();
           }}
-          className={`px-4 py-2 text-sm font-semibold rounded-xl text-white transition-all shadow-sm ${
-            confirmVariant === 'danger'
-              ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
-              : 'bg-brand-600 hover:bg-brand-700 shadow-brand-500/20'
-          }`}
         >
           {confirmLabel}
-        </button>
+        </Button>
       </div>
     </Modal>
   );
