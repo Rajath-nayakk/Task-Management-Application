@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useCyberTheme } from '../context/CyberThemeContext';
+import { useAuth } from '../context/AuthContext';
 import {
   Radio,
   ArrowRight,
@@ -13,6 +14,7 @@ import {
 
 export const LandingPage: React.FC = () => {
   const { accentConfig } = useCyberTheme();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#07070d] text-slate-100 cyber-bg flex flex-col justify-between selection:bg-[var(--neon-primary)] selection:text-black">
@@ -39,17 +41,27 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            to="/login"
-            className="px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
-          >
-            Access Terminal
-          </Link>
-          <Link to="/register">
-            <Button variant="primary" icon={<ArrowRight className="w-4 h-4" />}>
-              Deploy Unit
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/dashboard">
+              <Button variant="primary" icon={<ArrowRight className="w-4 h-4" />}>
+                Command Center
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+              >
+                Access Terminal
+              </Link>
+              <Link to="/register">
+                <Button variant="primary" icon={<ArrowRight className="w-4 h-4" />}>
+                  Deploy Unit
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -76,11 +88,19 @@ export const LandingPage: React.FC = () => {
               </Button>
             </Link>
 
-            <Link to="/login">
-              <Button size="lg" variant="secondary" icon={<ArrowRight className="w-4 h-4" />}>
-                Operator Sign In
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/tasks">
+                <Button size="lg" variant="secondary" icon={<ArrowRight className="w-4 h-4" />}>
+                  Active Missions
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button size="lg" variant="secondary" icon={<ArrowRight className="w-4 h-4" />}>
+                  Operator Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
