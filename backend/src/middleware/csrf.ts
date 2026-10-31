@@ -28,8 +28,8 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction):
   try {
     const originUrl = new URL(originHeader);
     const expectedUrl = new URL(allowedOrigin);
-
-    if (originUrl.host !== expectedUrl.host && !originUrl.host.includes('localhost')) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (originUrl.host !== expectedUrl.host && (isProduction || !originUrl.host.includes('localhost'))) {
       res.status(403).json({
         success: false,
         error: 'CSRF validation failed: Request origin not allowed.',

@@ -108,7 +108,7 @@ export const SystemsPage: React.FC = () => {
               <span className="text-slate-400">REST API BACKEND</span>
               <div className="flex items-center gap-2">
                 <Badge variant="green" dot>
-                  http://localhost:5000
+                  {import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}
                 </Badge>
               </div>
             </div>
