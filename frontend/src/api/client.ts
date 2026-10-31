@@ -10,7 +10,16 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 1. Normalize API and Socket URLs in one place
+const rawApiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim();
+// Strip any trailing slashes
+const sanitizedUrl = rawApiUrl.replace(/\/+$/, '');
+// Ensure API_BASE_URL always includes the /api prefix
+export const API_BASE_URL = sanitizedUrl.endsWith('/api') ? sanitizedUrl : `${sanitizedUrl}/api`;
+// Derive plain Socket.IO backend origin by stripping trailing /api and trailing slashes
+export const SOCKET_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
+const BASE_URL = API_BASE_URL;
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined | null>;

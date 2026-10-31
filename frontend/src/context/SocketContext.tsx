@@ -14,9 +14,7 @@ const SocketContext = createContext<SocketContextValue>({
   statusText: 'DISCONNECTED',
 });
 
-const SOCKET_URL = import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
-  : 'http://localhost:5000';
+import { SOCKET_ORIGIN } from '../api/client';
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -37,7 +35,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setStatusText('CONNECTING...');
 
-    const s = io(SOCKET_URL, {
+    const s = io(SOCKET_ORIGIN, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,

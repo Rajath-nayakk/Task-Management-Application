@@ -22,7 +22,7 @@ const server = http.createServer(app);
 app.set('trust proxy', 1);
 
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').trim().replace(/\/+$/, '');
 
 // 1. Security Headers with Helmet
 app.use(helmet());
@@ -72,6 +72,7 @@ const io = new SocketIOServer(server, {
     origin: FRONTEND_URL,
     credentials: true,
   },
+  transports: ['websocket', 'polling'],
 });
 
 io.use((socket, next) => {
