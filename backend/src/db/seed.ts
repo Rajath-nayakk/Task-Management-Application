@@ -8,10 +8,10 @@ export async function runSeed() {
   console.log('🌱 Starting database seeding...');
 
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@taskbuddy.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPassword123!';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'DevAdminPassword123!';
 
-  const demoEmail = 'alex@example.com';
-  const demoPassword = 'password123';
+  const demoEmail = process.env.DEMO_EMAIL || 'alex@example.com';
+  const demoPassword = process.env.DEMO_PASSWORD || 'DevUserPassword123!';
 
   const client = await pool.connect();
 
