@@ -13,6 +13,28 @@
 
 ---
 
+## 🌐 Live Demo
+
+- **Live Application (Frontend)**: `<ADD VERCEL URL>`
+- **Live Backend API**: `<ADD RENDER URL>`
+
+> **Operative Access**:
+> - **New Operatives**: Register a new account on the [Register](/register) page. Clearances and missions are created instantly with full real-time synchronization.
+> - **Administrator Console**: Admin credentials are strictly private and provisioned securely via `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables during deployment.
+
+---
+
+## ⚠️ Known Limitations
+
+1. **Render Free Tier Sleep / Cold Starts**:
+   - The free Render web service tier automatically hibernates after 15 minutes of inactivity.
+   - Initial load or first API query after dormancy may take 30 to 60 seconds while the server spins up. The application includes a cold-start banner (*"Server is waking up, please wait a moment..."*) and automatic retries for initial session restoration.
+2. **Cross-Domain Third-Party Cookies**:
+   - In prototype deployments across distinct default domains (e.g. `*.vercel.app` frontend and `*.onrender.com` backend), browsers with strict third-party cookie blocking (e.g., Safari ITP, Brave Shields, or Incognito Mode) may block the cross-site `httpOnly` cookie.
+   - For permanent production systems, pointing both services to subdomains of a shared parent custom domain (e.g., `app.yourdomain.com` and `api.yourdomain.com`) or allowing cross-site cookies in browser settings resolves this policy.
+
+---
+
 ## 🌟 Core Features
 
 - **Tactical Cyberpunk HUD Interface**:
