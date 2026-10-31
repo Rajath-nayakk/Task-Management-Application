@@ -134,15 +134,15 @@ export async function runSeed() {
   }
 }
 
-// Run directly if script entry point
-if (process.argv[1] && process.argv[1].includes('seed')) {
-  runSeed()
-    .then(async () => {
-      await pool.end();
-      process.exit(0);
-    })
-    .catch(async () => {
-      await pool.end();
-      process.exit(1);
-    });
-}
+// Always run when invoked as entry point
+runSeed()
+  .then(async () => {
+    await pool.end();
+    process.exit(0);
+  })
+  .catch(async (err) => {
+    const safeMessage = (err.message || 'Unknown database error').replace(/postgresql:\/\/[^@]+@/g, 'postgresql://***:***@');
+    console.error('❌ Seeding error:', safeMessage);
+    await pool.end();
+    process.exit(1);
+  });

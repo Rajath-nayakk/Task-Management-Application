@@ -1,14 +1,14 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { pool } from './pool.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function runMigration() {
   console.log('🔄 Running database migrations...');
-  // Check in current working directory /db/schema.sql
-  let schemaPath = path.resolve(process.cwd(), 'db/schema.sql');
-  if (!fs.existsSync(schemaPath)) {
-    schemaPath = path.resolve(process.cwd(), 'backend/db/schema.sql');
-  }
+  const schemaPath = path.resolve(__dirname, '../../db/schema.sql');
 
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`Schema file not found at ${schemaPath}`);
@@ -16,30 +16,40 @@ export async function runMigration() {
 
   const sql = fs.readFileSync(schemaPath, 'utf-8');
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
     await client.query(sql);
     await client.query('COMMIT');
     console.log('✅ Database migration completed successfully.');
   } catch (err: any) {
-    await client.query('ROLLBACK');
-    console.error('❌ Migration failed:', err.message);
-    throw err;
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {}
+    }
+    // Sanitize any potential connection string before logging
+    const safeMessage = (err.message || 'Unknown database error').replace(/postgresql:\/\/[^@]+@/g, 'postgresql://***:***@');
+    console.error('❌ Migration error:', safeMessage);
+    if (err.code) {
+      console.error('❌ Error Code:', err.code);
+    }
+    throw new Error(safeMessage);
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 }
 
-// Run directly if script entry point
-if (process.argv[1] && process.argv[1].includes('migrate')) {
-  runMigration()
-    .then(async () => {
-      await pool.end();
-      process.exit(0);
-    })
-    .catch(async () => {
-      await pool.end();
-      process.exit(1);
-    });
-}
+// Always run when invoked as entry point
+runMigration()
+  .then(async () => {
+    await pool.end();
+    process.exit(0);
+  })
+  .catch(async (err) => {
+    await pool.end();
+    process.exit(1);
+  });

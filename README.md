@@ -63,7 +63,23 @@ npm run dev
 ```
 Backend runs on [http://localhost:5000](http://localhost:5000) (Health check: `/api/health`).
 
-### 3. Frontend Setup
+### 3. Local Database Setup
+TaskBuddy supports both local PostgreSQL and hosted cloud instances.
+
+1. **Verify Connection**:
+   Ensure PostgreSQL is running locally on port 5432 and configure your credentials in `backend/.env`:
+   ```bash
+   cd backend
+   npm run db:check
+   ```
+2. **Run Migrations & Seeds**:
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
+   *Note: In Phase 8, production deployment will utilize a hosted PostgreSQL instance (such as Supabase, Neon, or Render).*
+
+### 4. Frontend Setup
 ```bash
 cd frontend
 npm install
