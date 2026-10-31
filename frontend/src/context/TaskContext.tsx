@@ -5,6 +5,8 @@ import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { TaskFormData } from '../types/schema';
 
+import { useSocket } from './SocketContext';
+
 interface TaskContextType {
   tasks: Task[];
   filteredTasks: Task[];
@@ -31,6 +33,7 @@ const initialFilters: TaskFilterState = {
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
+  const { socket } = useSocket();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filters, setFilters] = useState<TaskFilterState>(initialFilters);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -55,6 +58,44 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     refreshTasks();
   }, [refreshTasks]);
+
+  // Real-time synchronization across browser tabs and devices via authenticated Socket.IO room
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCreated = (task: Task) => {
+      setTasks((prev) => {
+        if (prev.some((t) => t.id === task.id)) {
+          return prev.map((t) => (t.id === task.id ? task : t));
+        }
+        return [task, ...prev.filter((t) => !t.id.startsWith('temp-'))];
+      });
+    };
+
+    const handleUpdated = (task: Task) => {
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+    };
+
+    const handleDeleted = ({ id }: { id: string }) => {
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    };
+
+    const handleCleared = () => {
+      setTasks([]);
+    };
+
+    socket.on('task:created', handleCreated);
+    socket.on('task:updated', handleUpdated);
+    socket.on('task:deleted', handleDeleted);
+    socket.on('task:cleared', handleCleared);
+
+    return () => {
+      socket.off('task:created', handleCreated);
+      socket.off('task:updated', handleUpdated);
+      socket.off('task:deleted', handleDeleted);
+      socket.off('task:cleared', handleCleared);
+    };
+  }, [socket]);
 
   // Optimistic Add with rollback
   const addTask = async (data: TaskFormData) => {
