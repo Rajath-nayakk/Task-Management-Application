@@ -1,0 +1,22 @@
+{
+  "name": "taskbuddy-monorepo",
+  "version": "1.0.0",
+  "description": "TaskBuddy Full-Stack Real-Time Task Management Application",
+  "scripts": {
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "test": "npm run test --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend"
+  },
+  "keywords": [
+    "taskbuddy",
+    "react",
+    "vite",
+    "express",
+    "socketio",
+    "postgresql",
+    "cyberpunk"
+  ],
+  "author": "",
+  "license": "ISC"
+}
